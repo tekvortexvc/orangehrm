@@ -1,4 +1,14 @@
 #!/bin/bash
+DATETIME=$(date '+%Y%m%d-%H%M%S')
 
-mount --verbose -t cifs //192.168.88.121/orangehrm /mnt/orangehrm/ -o username=orangehrm,password=Test123@@
-mysqldump -h orangehrm-mariadb --user='root' --password='password' orangehrm > /mnt/orangehrm/bkp10.sql
+# mount smb share
+mount --verbose -t cifs $SMB_NETWORK_PATH $SMB_MOUNT_PATH -o username=$SMB_USERNAME,password=$SMB_PASSWORD
+
+# dump mysql database
+mysqldump -h orangehrm-mariadb --user=$MARIADB_USERNAME --password=$MARIADB_PASSWORD orangehrm > /orangehrm-bkp-$DATETIME.sql
+
+# compress my sql dump
+tar -czvf orangehrm-bkp-$DATETIME.tar.gz /orangehrm-bkp-$DATETIME.sql
+
+# copy tar.gz to smb server
+cp orangehrm-bkp-$DATETIME.tar.gz $SMB_MOUNT_PATH
