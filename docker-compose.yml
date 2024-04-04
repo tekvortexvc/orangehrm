@@ -1,0 +1,46 @@
+version: "3.3"
+services:
+  orangehrm-mariadb:
+    image: mariadb:10.4
+    container_name: orangehrm-mariadb
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - net-orangehrm
+    volumes:
+      - mariadb:/var/lib/mysql
+
+  orangehrm-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: orangehrm-app
+    restart: always
+    depends_on:
+      - orangehrm-mariadb
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - net-orangehrm
+
+  orangehrm-bkp:
+    build:
+      context: ./backup/
+      dockerfile: Dockerfile
+    container_name: orangehrm-bkp
+    privileged: true
+    env_file:
+      - .env
+    depends_on:
+      - orangehrm-mariadb
+    networks: 
+      - net-orangehrm
+
+networks:
+  net-orangehrm:
+    driver: bridge
+
+volumes:
+  mariadb:
